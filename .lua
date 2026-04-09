@@ -36,7 +36,6 @@ function UILibrary:CreateWindow(title)
 
     CreateElement("UICorner", {CornerRadius = UDim.new(0, 20), Parent = MainFrame})
     CreateElement("UIStroke", {Color = Color3.fromRGB(0, 200, 255), Thickness = 3, Transparency = 0.5, Parent = MainFrame})
-    CreateElement("UIGradient", {Color = ColorSequence.new{ColorSequenceKeypoint.new(0, Color3.fromRGB(20, 20, 20)), ColorSequenceKeypoint.new(0.5, Color3.fromRGB(10, 10, 10)), ColorSequenceKeypoint.new(1, Color3.fromRGB(20, 20, 20))}, Rotation = 45, Parent = MainFrame})
 
     local TopBar = CreateElement("Frame", {
         Name = "TopBar",
@@ -45,7 +44,6 @@ function UILibrary:CreateWindow(title)
         BorderSizePixel = 0,
         Size = UDim2.new(1, 0, 0, 70)
     })
-
     CreateElement("UICorner", {CornerRadius = UDim.new(0, 20), Parent = TopBar})
 
     CreateElement("TextLabel", {
@@ -54,15 +52,13 @@ function UILibrary:CreateWindow(title)
         Position = UDim2.new(0, 25, 0, 0),
         Size = UDim2.new(0.6, 0, 1, 0),
         Font = Enum.Font.GothamBlack,
-        Text = title or "UI Library",
+        Text = title or "剑客加载器",
         TextColor3 = Color3.fromRGB(0, 200, 255),
         TextSize = 26,
-        TextXAlignment = Enum.TextXAlignment.Left,
-        TextStrokeTransparency = 0.9,
-        TextStrokeColor3 = Color3.fromRGB(255, 255, 255)
+        TextXAlignment = Enum.TextXAlignment.Left
     })
 
-    -- --- 核心修改部分：左侧页签容器改为可滚动 ---
+    -- 【左侧容器修复】
     local TabContainer = CreateElement("ScrollingFrame", {
         Name = "TabContainer",
         Parent = MainFrame,
@@ -70,9 +66,9 @@ function UILibrary:CreateWindow(title)
         BorderSizePixel = 0,
         Position = UDim2.new(0, 0, 0, 70),
         Size = UDim2.new(0, 200, 1, -70),
-        CanvasSize = UDim2.new(0, 0, 0, 0), -- 初始画布大小
-        AutomaticCanvasSize = Enum.AutomaticSize.Y, -- 根据内容自动增长高度
-        ScrollBarThickness = 2, -- 侧边滚动条粗细
+        CanvasSize = UDim2.new(0, 0, 0, 0), 
+        AutomaticCanvasSize = Enum.AutomaticSize.Y, -- 开启自动下滑
+        ScrollBarThickness = 2,
         ScrollBarImageColor3 = Color3.fromRGB(0, 200, 255),
         ScrollingDirection = Enum.ScrollingDirection.Y,
         BackgroundTransparency = 1,
@@ -83,17 +79,14 @@ function UILibrary:CreateWindow(title)
         Parent = TabContainer,
         SortOrder = Enum.SortOrder.LayoutOrder,
         Padding = UDim.new(0, 10),
-        HorizontalAlignment = Enum.HorizontalAlignment.Center,
-        VerticalAlignment = Enum.VerticalAlignment.Top
+        HorizontalAlignment = Enum.HorizontalAlignment.Center
     })
 
-    -- 增加内边距防止第一个按钮贴顶
     CreateElement("UIPadding", {
         Parent = TabContainer,
         PaddingTop = UDim.new(0, 10),
         PaddingBottom = UDim.new(0, 10)
     })
-    -- --- 修改结束 ---
 
     local ContentFrame = CreateElement("Frame", {
         Name = "ContentFrame",
@@ -103,89 +96,11 @@ function UILibrary:CreateWindow(title)
         Size = UDim2.new(1, -220, 1, -90)
     })
 
-    local CloseButton = CreateElement("TextButton", {
-        Parent = TopBar,
-        BackgroundColor3 = Color3.fromRGB(255, 80, 80),
-        BorderSizePixel = 0,
-        Position = UDim2.new(1, -60, 0.5, -20),
-        Size = UDim2.new(0, 40, 0, 40),
-        Font = Enum.Font.GothamBold,
-        Text = "X",
-        TextColor3 = Color3.fromRGB(255, 255, 255),
-        TextSize = 20
-    })
-    CreateElement("UICorner", {CornerRadius = UDim.new(0, 12), Parent = CloseButton})
-
-    local MinimizeButton = CreateElement("TextButton", {
-        Parent = TopBar,
-        BackgroundColor3 = Color3.fromRGB(255, 200, 80),
-        BorderSizePixel = 0,
-        Position = UDim2.new(1, -110, 0.5, -20),
-        Size = UDim2.new(0, 40, 0, 40),
-        Font = Enum.Font.GothamBold,
-        Text = "-",
-        TextColor3 = Color3.fromRGB(255, 255, 255),
-        TextSize = 20
-    })
-    CreateElement("UICorner", {CornerRadius = UDim.new(0, 12), Parent = MinimizeButton})
-
-    -- 窗口拖动逻辑
-    local dragging, dragStart, startPos
-    TopBar.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragging = true
-            dragStart = input.Position
-            startPos = MainFrame.Position
-            local connection
-            connection = input.Changed:Connect(function()
-                if input.UserInputState == Enum.UserInputState.End then
-                    dragging = false
-                    connection:Disconnect()
-                end
-            end)
-        end
-    end)
-
-    UserInputService.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement and dragging then
-            local delta = input.Position - dragStart
-            MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-        end
-    end)
-
-    CloseButton.MouseButton1Click:Connect(function()
-        TweenService:Create(MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.In), {Size = UDim2.new(0, 0, 0, 0), Position = UDim2.new(0.5, 0, 0.5, 0)}):Play()
-        task.wait(0.3)
-        ScreenGui:Destroy()
-    end)
-
-    MinimizeButton.MouseButton1Click:Connect(function()
-        Minimized = not Minimized
-        TabContainer.Visible = not Minimized
-        ContentFrame.Visible = not Minimized
-        if Minimized then
-            TweenService:Create(MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {Size = UDim2.new(0, 700, 0, 70)}):Play()
-        else
-            TweenService:Create(MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {Size = UDim2.new(0, 700, 0, 500)}):Play()
-        end
-    end)
-
-    function window:SwitchToTab(tabToSelect)
-        for _, tab in pairs(tabs) do
-            tab.Page.Visible = false
-            TweenService:Create(tab.Button, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(25, 25, 25), TextColor3 = Color3.fromRGB(220, 220, 220)}):Play()
-        end
-        tabToSelect.Page.Visible = true
-        TweenService:Create(tabToSelect.Button, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(0, 200, 255), TextColor3 = Color3.fromRGB(255, 255, 255)}):Play()
-    end
-
     function window:CreateTab(name)
         local tab = {}
         local tabButton = CreateElement("TextButton", {
-            Name = name .. "Tab",
             Parent = TabContainer,
             BackgroundColor3 = Color3.fromRGB(25, 25, 25),
-            BorderSizePixel = 0,
             Size = UDim2.new(1, -20, 0, 50),
             Font = Enum.Font.GothamBold,
             Text = name,
@@ -193,35 +108,58 @@ function UILibrary:CreateWindow(title)
             TextSize = 18
         })
         CreateElement("UICorner", {CornerRadius = UDim.new(0, 12), Parent = tabButton})
-        
-        local tabStroke = CreateElement("UIStroke", {Color = Color3.fromRGB(0, 200, 255), Thickness = 2, Transparency = 0.6, Parent = tabButton})
 
+        -- 【右侧内容区修复】
         local page = CreateElement("ScrollingFrame", {
             Name = name .. "Page",
             Parent = ContentFrame,
             BackgroundTransparency = 1,
             Size = UDim2.new(1, 0, 1, 0),
-            ScrollBarThickness = 5,
+            ScrollBarThickness = 4,
             ScrollBarImageColor3 = Color3.fromRGB(0, 200, 255),
             Visible = false,
-            CanvasSize = UDim2.new(0, 0, 0, 0),
-            AutomaticCanvasSize = Enum.AutomaticSize.Y
+            CanvasSize = UDim2.new(0, 0, 0, 0), -- 初始设为0
+            AutomaticCanvasSize = Enum.AutomaticSize.Y, -- 核心：让右边也能下滑
+            ScrollingDirection = Enum.ScrollingDirection.Y
         })
-        CreateElement("UIListLayout", {Parent = page, SortOrder = Enum.SortOrder.LayoutOrder, Padding = UDim.new(0, 15)})
+        
+        CreateElement("UIListLayout", {
+            Parent = page, 
+            SortOrder = Enum.SortOrder.LayoutOrder, 
+            Padding = UDim.new(0, 15),
+            HorizontalAlignment = Enum.HorizontalAlignment.Center
+        })
+        
+        CreateElement("UIPadding", {
+            Parent = page,
+            PaddingTop = UDim.new(0, 5),
+            PaddingLeft = UDim.new(0, 5),
+            PaddingRight = UDim.new(0, 5)
+        })
 
         tab.Button = tabButton
         tab.Page = page
         table.insert(tabs, tab)
 
-        tabButton.MouseButton1Click:Connect(function() window:SwitchToTab(tab) end)
-        if #tabs == 1 then window:SwitchToTab(tab) end
+        tabButton.MouseButton1Click:Connect(function()
+            for _, t in pairs(tabs) do
+                t.Page.Visible = false
+                t.Button.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+            end
+            page.Visible = true
+            tabButton.BackgroundColor3 = Color3.fromRGB(0, 200, 255)
+        end)
+
+        if #tabs == 1 then
+            page.Visible = true
+            tabButton.BackgroundColor3 = Color3.fromRGB(0, 200, 255)
+        end
 
         function tab:CreateButton(text, callback)
             local button = CreateElement("TextButton", {
                 Parent = page,
                 BackgroundColor3 = Color3.fromRGB(25, 25, 25),
-                BorderSizePixel = 0,
-                Size = UDim2.new(1, -20, 0, 50),
+                Size = UDim2.new(1, -10, 0, 50),
                 Font = Enum.Font.GothamBold,
                 Text = text,
                 TextColor3 = Color3.fromRGB(255, 255, 255),
@@ -234,6 +172,18 @@ function UILibrary:CreateWindow(title)
 
         return tab
     end
+
+    -- 简单的关闭和拖拽逻辑
+    local CloseButton = CreateElement("TextButton", {
+        Parent = TopBar,
+        BackgroundColor3 = Color3.fromRGB(255, 80, 80),
+        Position = UDim2.new(1, -50, 0.5, -15),
+        Size = UDim2.new(0, 30, 0, 30),
+        Text = "X",
+        TextColor3 = Color3.fromRGB(255, 255, 255)
+    })
+    CreateElement("UICorner", {CornerRadius = UDim.new(0, 8), Parent = CloseButton})
+    CloseButton.MouseButton1Click:Connect(function() ScreenGui:Destroy() end)
 
     return window
 end
